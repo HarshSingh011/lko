@@ -29,6 +29,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val state = uiState
 
     Scaffold(
         topBar = {
@@ -42,7 +43,7 @@ fun ProfileScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            when (uiState) {
+            when (state) {
                 is ProfileUiState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center)
@@ -50,14 +51,14 @@ fun ProfileScreen(
                 }
                 is ProfileUiState.Error -> {
                     ErrorContent(
-                        message = uiState.message,
+                        message = state.message,
                         onRetry = { viewModel.retry() },
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
                 is ProfileUiState.Success -> {
                     ProfileContent(
-                        profile = uiState.profile,
+                        profile = state.profile,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
