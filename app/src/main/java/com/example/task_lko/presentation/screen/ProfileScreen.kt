@@ -1,22 +1,27 @@
 package com.example.task_lko.presentation.screen
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.task_lko.domain.model.UserProfile
@@ -31,13 +36,7 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     val state = uiState
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Profile") }
-            )
-        }
-    ) { paddingValues ->
+    Scaffold { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -57,10 +56,7 @@ fun ProfileScreen(
                     )
                 }
                 is ProfileUiState.Success -> {
-                    ProfileContent(
-                        profile = state.profile,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    DecorativeProfileScreen(profile = state.profile, onRetry = { viewModel.retry() })
                 }
             }
         }
@@ -68,210 +64,185 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ErrorContent(
-    message: String,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun ErrorContent(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Error: $message",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onRetry) {
-            Text("Retry")
-        }
-    }
-}
-
-@Composable
-private fun ProfileContent(
-    profile: UserProfile,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            ProfileHeader(profile = profile)
-        }
-        
-        item {
-            ProfileStats(profile = profile)
-        }
-        
-        item {
-            Text(
-                text = "Social Profiles",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        
-        items(profile.socialProfiles) { socialProfile ->
-            SocialProfileItem(socialProfile = socialProfile)
-        }
-        
-        if (profile.website.isNotBlank()) {
-            item {
-                WebsiteItem(website = profile.website)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ProfileHeader(profile: UserProfile) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        AsyncImage(
-            model = profile.avatarUrl,
-            contentDescription = "Profile Avatar",
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Text(
-            text = profile.name,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        
-        Text(
-            text = profile.username,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        
+        Text(text = "Something went wrong", style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
+        Text(text = message, style = MaterialTheme.typography.bodyMedium, color = Color.Gray, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Spacer(modifier = Modifier.height(12.dp))
+        Button(onClick = onRetry) {
+            Text(text = "Retry")
+        }
+    }
+}
+
+@Composable
+private fun DecorativeProfileScreen(profile: UserProfile, onRetry: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize()) {
         
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.LocationOn,
-                contentDescription = "Location",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = profile.location,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProfileStats(profile: UserProfile) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            StatItem(label = "Followers", value = profile.followers.toString())
-            StatItem(label = "Following", value = profile.following.toString())
-            StatItem(label = "Shots", value = profile.shots.toString())
-            StatItem(label = "Collections", value = profile.collections.toString())
-        }
-    }
-}
-
-@Composable
-private fun StatItem(label: String, value: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun SocialProfileItem(socialProfile: UserProfile.SocialProfile) {
-    val uriHandler = LocalUriHandler.current
-    
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { uriHandler.openUri(socialProfile.url) }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = socialProfile.platform,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.weight(1f)
-            )
-            Icon(
-                imageVector = Icons.Default.ExitToApp,
-                contentDescription = "Open ${socialProfile.platform}",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun WebsiteItem(website: String) {
-    val uriHandler = LocalUriHandler.current
-    
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { uriHandler.openUri(website) }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Website",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
+                .height(200.dp)
+                .clip(RoundedCornerShape(bottomStart = 80.dp, bottomEnd = 80.dp))
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFF3B2D8A), Color(0xFF6A3BE0))
+                    )
                 )
-                Text(
-                    text = website,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+        ) {
+            
+            Text(
+                text = profile.username,
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 16.dp),
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+            )
+
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Settings",
+                tint = Color.White,
+                modifier = Modifier
+                    .size(28.dp)
+                    .align(Alignment.TopEnd)
+                    .padding(end = 16.dp, top = 12.dp)
+            )
+        }
+
+        
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .offset(y = 110.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            
+            Surface(
+                shape = CircleShape,
+                tonalElevation = 4.dp,
+                shadowElevation = 4.dp,
+                modifier = Modifier
+                    .size(110.dp)
+                    .zIndex(2f)
+            ) {
+                Box(modifier = Modifier.padding(4.dp)) {
+                    AsyncImage(
+                        model = profile.avatarUrl,
+                        contentDescription = "Avatar",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
-            Icon(
-                imageVector = Icons.Default.ExitToApp,
-                contentDescription = "Open website",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = profile.name, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold))
+            Text(text = profile.location, style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF7B6FBF)))
+
+            Spacer(modifier = Modifier.height(12.dp))
+            StatsPill(followers = profile.followers, following = profile.following)
+
+            Spacer(modifier = Modifier.height(12.dp))
+            SocialRow(profile = profile)
+
+            Spacer(modifier = Modifier.height(12.dp))
+            TabsRow(shots = profile.shots, collections = profile.collections)
+
+            Spacer(modifier = Modifier.height(18.dp))
+            
+            AsyncImage(
+                model = "https://raw.githubusercontent.com/ponnamkarthik/AssetStore/main/illustrations/undraw_content_creator_re_kk0e.png",
+                contentDescription = "Illustration",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(240.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Fit
             )
+        }
+    }
+}
+
+@Composable
+private fun StatsPill(followers: Int, following: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF2F2F6)),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "$followers", fontWeight = FontWeight.Bold)
+            Text(text = "Followers", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+        }
+        Divider(modifier = Modifier
+            .height(36.dp)
+            .width(1.dp)
+            .background(Color(0xFFE6E6EE)))
+        Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "$following", fontWeight = FontWeight.Bold)
+            Text(text = "Following", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+        }
+    }
+}
+
+@Composable
+private fun SocialRow(profile: UserProfile) {
+    val uriHandler = LocalUriHandler.current
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = { if (profile.website.isNotBlank()) uriHandler.openUri(profile.website) }) {
+            Icon(imageVector = Icons.Default.ExitToApp, contentDescription = "Website", tint = Color.Gray)
+        }
+    Spacer(modifier = Modifier.width(8.dp))
+        
+        Text("•", fontSize = 20.sp, color = Color(0xFF7B6FBF))
+        Spacer(modifier = Modifier.width(8.dp))
+        IconButton(onClick = { profile.socialProfiles.getOrNull(0)?.url?.let { uriHandler.openUri(it) } }) {
+            Icon(imageVector = Icons.Default.ExitToApp, contentDescription = "Instagram", tint = Color.Gray)
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text("•", fontSize = 20.sp, color = Color(0xFF7B6FBF))
+        Spacer(modifier = Modifier.width(8.dp))
+        IconButton(onClick = { profile.socialProfiles.getOrNull(1)?.url?.let { uriHandler.openUri(it) } }) {
+            Icon(imageVector = Icons.Default.ExitToApp, contentDescription = "Facebook", tint = Color.Gray)
+        }
+    }
+}
+
+@Composable
+private fun TabsRow(shots: Int, collections: Int) {
+    var selected by remember { mutableStateOf(0) }
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Box(modifier = Modifier
+            .weight(1f)
+            .height(48.dp)
+            .padding(end = 8.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (selected == 0) Color(0xFFEDE7FF) else Color(0xFFF2F2F6))
+            .clickable { selected = 0 }, contentAlignment = Alignment.Center) {
+            Text(text = "$shots shots", color = if (selected == 0) Color(0xFF6A3BE0) else Color.Gray, fontWeight = FontWeight.Medium)
+        }
+        Box(modifier = Modifier
+            .weight(1f)
+            .height(48.dp)
+            .padding(start = 8.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (selected == 1) Color(0xFFEDE7FF) else Color(0xFFF2F2F6))
+            .clickable { selected = 1 }, contentAlignment = Alignment.Center) {
+            Text(text = "$collections Collections", color = if (selected == 1) Color(0xFF6A3BE0) else Color.Gray, fontWeight = FontWeight.Medium)
         }
     }
 }
