@@ -6,17 +6,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import com.example.task_lko.R
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -90,13 +91,15 @@ private fun DecorativeProfileScreen(profile: UserProfile, onRetry: () -> Unit) {
                 .fillMaxWidth()
                 .height(200.dp)
                 .clip(RoundedCornerShape(bottomStart = 80.dp, bottomEnd = 80.dp))
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(Color(0xFF3B2D8A), Color(0xFF6A3BE0))
-                    )
-                )
         ) {
-            
+            Image(
+                painter = painterResource(id = R.drawable.header_background),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
             Text(
                 text = profile.username,
                 color = Color.White,
@@ -140,7 +143,8 @@ private fun DecorativeProfileScreen(profile: UserProfile, onRetry: () -> Unit) {
                         contentDescription = "Avatar",
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(CircleShape),
+                            .clip(CircleShape)
+                            .border(width = 4.dp, color = Color.White, shape = CircleShape),
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -203,22 +207,34 @@ private fun StatsPill(followers: Int, following: Int) {
 private fun SocialRow(profile: UserProfile) {
     val uriHandler = LocalUriHandler.current
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = { if (profile.website.isNotBlank()) uriHandler.openUri(profile.website) }) {
-            Icon(imageVector = Icons.Default.ExitToApp, contentDescription = "Website", tint = Color.Gray)
-        }
-    Spacer(modifier = Modifier.width(8.dp))
-        
+        Image(
+            painter = painterResource(id = R.drawable.globe),
+            contentDescription = "Website",
+            modifier = Modifier
+                .size(28.dp)
+                .clickable { if (profile.website.isNotBlank()) uriHandler.openUri(profile.website) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+
         Text("•", fontSize = 20.sp, color = Color(0xFF7B6FBF))
         Spacer(modifier = Modifier.width(8.dp))
-        IconButton(onClick = { profile.socialProfiles.getOrNull(0)?.url?.let { uriHandler.openUri(it) } }) {
-            Icon(imageVector = Icons.Default.ExitToApp, contentDescription = "Instagram", tint = Color.Gray)
-        }
+        Image(
+            painter = painterResource(id = R.drawable.instagram),
+            contentDescription = "Instagram",
+            modifier = Modifier
+                .size(28.dp)
+                .clickable { profile.socialProfiles.getOrNull(0)?.url?.let { uriHandler.openUri(it) } }
+        )
         Spacer(modifier = Modifier.width(8.dp))
         Text("•", fontSize = 20.sp, color = Color(0xFF7B6FBF))
         Spacer(modifier = Modifier.width(8.dp))
-        IconButton(onClick = { profile.socialProfiles.getOrNull(1)?.url?.let { uriHandler.openUri(it) } }) {
-            Icon(imageVector = Icons.Default.ExitToApp, contentDescription = "Facebook", tint = Color.Gray)
-        }
+        Image(
+            painter = painterResource(id = R.drawable.facebook),
+            contentDescription = "Facebook",
+            modifier = Modifier
+                .size(28.dp)
+                .clickable { profile.socialProfiles.getOrNull(1)?.url?.let { uriHandler.openUri(it) } }
+        )
     }
 }
 
